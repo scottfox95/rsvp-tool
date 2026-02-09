@@ -80,17 +80,15 @@ export function TextInput({ onSubmit }: TextInputProps) {
   return (
     <div className="fade-enter flex flex-col h-full px-4 sm:px-6 pt-4 pb-6">
       {/* Header */}
-      <div className="flex items-end justify-between mb-6">
-        <div>
-          <h1 className="font-mono text-[var(--muted)] text-[10px] tracking-[0.2em] uppercase mb-1">
-            Ryan & Scott&apos;s
-          </h1>
-          <h2 className="font-mono text-white text-lg tracking-tight">
-            RSVP <span className="text-[var(--red)]">Reader</span>
-          </h2>
-        </div>
+      <div className="flex flex-col items-center mb-6">
+        <h1 className="font-mono text-[var(--muted)] text-[10px] tracking-[0.2em] uppercase mb-1">
+          Ryan R and Scott T&apos;s
+        </h1>
+        <h2 className="font-mono text-white text-lg tracking-tight">
+          RSVP <span className="text-[var(--red)]">Reader</span>
+        </h2>
         {wordCount > 0 && (
-          <span className="text-[var(--dim)] text-xs font-mono tabular-nums">
+          <span className="text-[var(--dim)] text-xs font-mono tabular-nums mt-1">
             {wordCount} word{wordCount !== 1 ? "s" : ""}
           </span>
         )}
