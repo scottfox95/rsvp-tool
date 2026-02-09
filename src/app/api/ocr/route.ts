@@ -9,10 +9,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No image provided" }, { status: 400 });
     }
 
-    const apiKey = process.env.OPENAI_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       return NextResponse.json(
-        { error: "OCR not configured — add OPENAI_API_KEY to .env.local" },
+        { error: "OCR not configured — add GEMINI_API_KEY to .env.local" },
         { status: 500 }
       );
     }
@@ -22,39 +22,35 @@ export async function POST(request: NextRequest) {
     const base64 = Buffer.from(bytes).toString("base64");
     const mimeType = file.type || "image/png";
 
-    // Call OpenAI Vision API
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: [
-          {
-            role: "user",
-            content: [
-              {
-                type: "text",
-                text: "Extract all readable text from this image. Return ONLY the extracted text, preserving paragraph breaks. Do not add any commentary, labels, or formatting — just the raw text exactly as it appears.",
-              },
-              {
-                type: "image_url",
-                image_url: {
-                  url: `data:${mimeType};base64,${base64}`,
+    // Call Gemini API
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  text: "Extract all readable text from this image. Return ONLY the extracted text, preserving paragraph breaks. Do not add any commentary, labels, or formatting — just the raw text exactly as it appears.",
                 },
-              },
-            ],
-          },
-        ],
-        max_tokens: 4096,
-      }),
-    });
+                {
+                  inlineData: {
+                    mimeType,
+                    data: base64,
+                  },
+                },
+              ],
+            },
+          ],
+        }),
+      }
+    );
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error("OpenAI API error:", errorData);
+      console.error("Gemini API error:", errorData);
       return NextResponse.json(
         { error: "OCR processing failed" },
         { status: 500 }
@@ -62,7 +58,8 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await response.json();
-    const extractedText = data.choices?.[0]?.message?.content?.trim() || "";
+    const extractedText =
+      data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
 
     if (!extractedText) {
       return NextResponse.json(
