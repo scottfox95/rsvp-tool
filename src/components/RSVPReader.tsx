@@ -185,6 +185,14 @@ export function RSVPReader({ text, onExit }: RSVPReaderProps) {
   const handleTouchEnd = useCallback(
     (e: React.TouchEvent) => {
       if (!touchStartRef.current) return;
+
+      // Don't handle touches on interactive elements — let their onClick fire
+      const target = e.target as HTMLElement;
+      if (target.closest("button, input, [data-word-index]")) {
+        touchStartRef.current = null;
+        return;
+      }
+
       const touch = e.changedTouches[0];
       const dx = touch.clientX - touchStartRef.current.x;
       const dy = touch.clientY - touchStartRef.current.y;
